@@ -30,6 +30,7 @@ Examples
 
 ### Future plans
 - [ ] Actually implement regex
+- [ ] Improve stupid table for colors
 - [ ] More colors
 - [ ] Fix "page boundary" issues
 
