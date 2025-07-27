@@ -43,7 +43,7 @@ char argtocol[256] = {
 
 int main(int argc, char **argv) {
 	char *in  = malloc(CHUNK);
-	char *program = ext_arg(&argv);
+	(void)ext_arg(&argv);
 	char *arg;
 	size_t readlen;
 
@@ -55,11 +55,12 @@ int main(int argc, char **argv) {
 		if (cmpstri > MAX_ARGS) error("too many arguments");
 		if (str == NULL) error ("wrong number of arguments");
 		if (strlen(arg) != 2 || *arg != '-') error("failed to parse arguments");
-		if (argtocol[arg[1]] == 0) error("invalid argument");
+		size_t argcol = arg[1];
+		if (argtocol[argcol] == 0) error("invalid argument");
 		struct cmpstr s = {
 			.str = str,
 			.len = strlen(str),
-			.eq = argtocol[arg[1]],
+			.eq = argtocol[argcol],
 		};
 		cmpstrs[cmpstri++] = s;
 	}
