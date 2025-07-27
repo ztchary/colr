@@ -3,15 +3,15 @@ Handy tool to highlight piped text
 
 ### Usage
 
-`hl [ -<color> <pattern> ...]`
+`colr [ -<color> <pattern> ...]`
 
 Examples
 
 - highlight the word `blue` in blue
-`cat file.txt | hl -b blue`
+`cat file.txt | colr -b blue`
 
 - highlight ok and error
-`make test | hl -r ERROR -g OK`
+`make test | colr -r ERROR -g OK`
 
 ### Colors
 | flag | color |

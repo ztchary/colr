@@ -1,2 +1,2 @@
-hl: main.c
-	gcc -o hl main.c
+colr: colr.c
+	gcc -o colr colr.c
