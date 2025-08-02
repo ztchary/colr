@@ -22,6 +22,7 @@ struct cmpstr {
 	char eq;
 };
 
+// TODO: add more colors, 8 bit color maybe? also need a better method for this
 char argtocol[256] = {
 	0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
 	0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
@@ -45,7 +46,6 @@ int main(int argc, char **argv) {
 	char *in  = malloc(CHUNK);
 	(void)ext_arg(&argv);
 	char *arg;
-	size_t readlen;
 
 	struct cmpstr *cmpstrs = malloc(MAX_ARGS * sizeof(struct cmpstr));
 	size_t cmpstri = 0;
@@ -65,8 +65,7 @@ int main(int argc, char **argv) {
 		cmpstrs[cmpstri++] = s;
 	}
 
-	do {
-		readlen = fread(in, 1, CHUNK, stdin);
+	while (fgets(in, CHUNK, stdin) != 0) {
 		for (size_t off = 0; in[off]; off++) {
 			for (size_t stri = 0; stri < cmpstri; stri++) {
 				if (strncmp(&in[off], cmpstrs[stri].str, cmpstrs[stri].len) == 0) {
@@ -79,5 +78,5 @@ int main(int argc, char **argv) {
 			}
 		}
 		printf("%s", in);
-	} while (readlen == CHUNK);
+	}
 }

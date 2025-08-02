@@ -26,11 +26,10 @@ Examples
 ### Issues
 
 - Doesn't support regex (even though its in the name)
-- Reads chunks from stdin which causes issues on boundaries, should read line by line
 
 ### Future plans
 - [ ] Actually implement regex
 - [ ] Improve stupid table for colors
 - [ ] More colors
-- [ ] Fix "page boundary" issues
+- [x] Fix "page boundary" issues
 
