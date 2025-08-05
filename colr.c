@@ -43,7 +43,8 @@ char argtocol[256] = {
 };
 
 int main(int argc, char **argv) {
-	char *in  = malloc(CHUNK);
+	char *buf = malloc(CHUNK);
+	char *in = buf;
 	(void)ext_arg(&argv);
 	char *arg;
 
@@ -78,5 +79,6 @@ int main(int argc, char **argv) {
 			}
 		}
 		printf("%s", in);
+		in = buf;
 	}
 }
