@@ -99,6 +99,7 @@ int main(int argc, char **argv) {
 		printf("%s", in);
 		in = buf;
 	}
+	fflush(stdout);
 	for (int i = 0; i < num_cmpstr; i++) {
 		free(cmpstrs[i].esc);
 	}
