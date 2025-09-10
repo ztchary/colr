@@ -3,10 +3,23 @@
 #include <string.h>
 
 #define CHUNK 64000
-#define MAX_ARGS 128
+
+void help() {
+	fprintf(stderr, "Usage: colr [ -<color> <pattern> ... ]\n\
+  -r       red\n\
+  -g       green\n\
+  -y       yellow\n\
+  -b       blue\n\
+  -m       magenta\n\
+  -c       cyan\n\
+  -e[4m    arbitrary ansi escape\n\
+  -xABC012 rgb hex color \n");
+	fflush(stderr);
+}
 
 void error(const char *msg) {
-	fprintf(stderr, "\x1b[31m[ERR]\x1b[0m %s\n", msg);
+	fprintf(stderr, "\e[31m[ERR]\e[0m %s\n", msg);
+	help();
 	exit(1);
 }
 
@@ -18,29 +31,32 @@ char *ext_arg(char ***argv) {
 
 struct cmpstr {
 	char *str;
-	size_t len;
-	char eq;
+	int len;
+	char *esc;
 };
 
-// TODO: add more colors, 8 bit color maybe? also need a better method for this
-char argtocol[256] = {
-	0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
-	0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
-	0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
-	0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
-	0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
-	0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
-	0,  0,  34, 36, 0,  0,  0,  32, 0,  0,  0,  0,  0,  35, 0,  0,
-	0,  0,  31, 0,  0,  0,  0,  0,  0,  33, 0,  0,  0,  0,  0,  0,
-	0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
-	0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
-	0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
-	0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
-	0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
-	0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
-	0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
-	0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
-};
+char *argtoesc(char *arg) {
+	switch (*arg) {
+		case 'r': return strdup("\e[91m");
+		case 'g': return strdup("\e[92m");
+		case 'y': return strdup("\e[93m");
+		case 'b': return strdup("\e[94m");
+		case 'm': return strdup("\e[95m");
+		case 'c': return strdup("\e[96m");
+		case 'e': {
+			char *o = malloc(256);
+			sprintf(o, "\e%s", arg + 1);
+			return o;
+		}
+		case 'x': {
+			long int hex = strtol(arg + 1, NULL, 16);
+			char *o = malloc(32);
+			sprintf(o, "\e[38;2;%ld;%ld;%ldm", (hex >> 16) & 0xff, (hex >> 8) & 0xff, (hex >> 0) & 0xff);
+			return o;
+		}
+		default: return NULL;
+	}
+}
 
 int main(int argc, char **argv) {
 	char *buf = malloc(CHUNK);
@@ -48,30 +64,32 @@ int main(int argc, char **argv) {
 	(void)ext_arg(&argv);
 	char *arg;
 
-	struct cmpstr *cmpstrs = malloc(MAX_ARGS * sizeof(struct cmpstr));
-	size_t cmpstri = 0;
+	int num_cmpstr = argc / 2;
+
+	struct cmpstr *cmpstrs = malloc(num_cmpstr * sizeof(struct cmpstr));
+	int cmpstri = 0;
 
 	while ((arg = ext_arg(&argv)) != NULL) {
 		char *str = ext_arg(&argv);
-		if (cmpstri > MAX_ARGS) error("too many arguments");
 		if (str == NULL) error ("wrong number of arguments");
-		if (strlen(arg) != 2 || *arg != '-') error("failed to parse arguments");
-		size_t argcol = arg[1];
-		if (argtocol[argcol] == 0) error("invalid argument");
+		if (*arg != '-') error(arg);
+		if (*arg == 'h') help();
+		char *esc = argtoesc(arg + 1);
+		if (esc == NULL) error("invalid argument");
 		struct cmpstr s = {
 			.str = str,
 			.len = strlen(str),
-			.eq = argtocol[argcol],
+			.esc = esc,
 		};
 		cmpstrs[cmpstri++] = s;
 	}
 
 	while (fgets(in, CHUNK, stdin) != 0) {
-		for (size_t off = 0; in[off]; off++) {
-			for (size_t stri = 0; stri < cmpstri; stri++) {
+		for (int off = 0; in[off]; off++) {
+			for (int stri = 0; stri < cmpstri; stri++) {
 				if (strncmp(&in[off], cmpstrs[stri].str, cmpstrs[stri].len) == 0) {
 					fwrite(in, 1, off, stdout);
-					printf("\x1b[%dm%s\x1b[0m", cmpstrs[stri].eq, cmpstrs[stri].str);
+					printf("%s%s\e[0m", cmpstrs[stri].esc, cmpstrs[stri].str);
 					in += off + cmpstrs[stri].len;
 					off = -1;
 					break;
@@ -81,4 +99,8 @@ int main(int argc, char **argv) {
 		printf("%s", in);
 		in = buf;
 	}
+	for (int i = 0; i < num_cmpstr; i++) {
+		free(cmpstrs[i].esc);
+	}
 }
+

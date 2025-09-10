@@ -22,6 +22,8 @@ Examples
 | -b | blue |
 | -m | magenta |
 | -c | cyan |
+| -e[4m | ansi escape code |
+| -xABC012 | hex color (truecolor) |
 
 ### Issues
 
@@ -29,7 +31,7 @@ Examples
 
 ### Future plans
 - [ ] Actually implement regex
-- [ ] Improve stupid table for colors
-- [ ] More colors
+- [x] Improve stupid table for colors
+- [x] More colors
 - [x] Fix "page boundary" issues
 
